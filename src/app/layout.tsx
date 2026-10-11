@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
@@ -25,7 +26,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script src="/theme-boot.js" strategy="beforeInteractive" />
+      </head>
       <body>
         <AppShell>{children}</AppShell>
       </body>
