@@ -12,6 +12,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { usePathname } from "next/navigation";
 import english from "@/data/english.json";
 import { initialState, testReducer, type TestState } from "@/lib/test-reducer";
 import { CUSTOM_TEXT, DEFAULT_CONFIG, QUOTE_GROUPS, generateWords } from "@/lib/typing";
@@ -44,7 +45,7 @@ export function useTest(): TestContextValue {
 let quotesCache: Quote[] | null = null;
 async function loadQuotes(): Promise<Quote[]> {
   if (!quotesCache) {
-    const res = await fetch("/data/quotes-english.json");
+    const res = await fetch("/quotes/english.json");
     const json: { quotes: Quote[] } = await res.json();
     quotesCache = json.quotes;
   }
@@ -82,6 +83,7 @@ export function TestProvider({ children }: { children: ReactNode }) {
   const [inputFocused, setInputFocused] = useState(false);
   const [now, setNow] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const onTestPage = usePathname() === "/";
   const resetSeq = useRef(0);
 
   const reset = useCallback(async (config: TestConfig) => {
@@ -143,6 +145,7 @@ export function TestProvider({ children }: { children: ReactNode }) {
 
   // "press any key to focus": first key anywhere focuses the hidden input
   useEffect(() => {
+    if (!onTestPage) return;
     const onKey = (e: KeyboardEvent) => {
       if (state.finished || e.target === inputRef.current) return;
       if (e.key === "Tab" || e.key === "Enter" || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -151,7 +154,7 @@ export function TestProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [state.finished]);
+  }, [onTestPage, state.finished]);
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

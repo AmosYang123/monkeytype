@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 const title = "Monkeytype | A minimalistic, customizable typing test";
@@ -6,7 +7,7 @@ const description =
   "The most customizable typing test website with a minimal design and a ton of features. Test yourself in various modes, track your progress and improve your speed.";
 
 export const metadata: Metadata = {
-  title,
+  title: { default: title, template: "%s | Monkeytype" },
   description,
   keywords: ["typing test", "monkeytype", "speed test", "typing", "test", "speed"],
   authors: [{ name: "Miodec" }],
@@ -25,7 +26,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

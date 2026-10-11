@@ -1,0 +1,27 @@
+// Word lists over 1MB are not vendored; /api/languages/[name] fetches and caches them.
+export const REMOTE_LANGUAGES: readonly string[] = [
+  "belarusian_100k",
+  "belarusian_50k",
+  "english_450k",
+  "french_600k",
+  "german_250k",
+  "italian_280k",
+  "italian_60k",
+  "macedonian_75k",
+  "norwegian_bokmal_150k",
+  "norwegian_bokmal_600k",
+  "norwegian_nynorsk_100k",
+  "norwegian_nynorsk_400k",
+  "polish_200k",
+  "portuguese_320k",
+  "portuguese_550k",
+  "romanian_100k",
+  "romanian_200k",
+  "russian_375k",
+  "russian_50k",
+  "spanish_650k",
+  "thai_50k",
+  "thai_60k",
+  "ukrainian_50k",
+  "uzbek_70k"
+];

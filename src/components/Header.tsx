@@ -47,46 +47,25 @@ export function Header() {
         </div>
       </Link>
       <nav className="z-[5] flex w-full items-center gap-1 md:gap-2">
-        <Link href="/" className={navItem}>
+        <Link href="/" data-nav-item="test" aria-label="test" className={navItem}>
           <Fa icon="keyboard" />
         </Link>
-        <a
-          href="/leaderboards"
-          className={navItem}
-          onClick={(e) => e.preventDefault()}
-        >
+        <Link href="/leaderboards" data-nav-item="leaderboards" aria-label="leaderboards" className={navItem}>
           <Fa icon="crown" />
-        </a>
-        <a
-          href="/about"
-          className={navItem}
-          onClick={(e) => e.preventDefault()}
-        >
+        </Link>
+        <Link href="/about" data-nav-item="about" aria-label="about" className={navItem}>
           <Fa icon="info" />
-        </a>
-        <a
-          href="/settings"
-          className={navItem}
-          onClick={(e) => e.preventDefault()}
-        >
+        </Link>
+        <Link href="/settings" data-nav-item="settings" aria-label="settings" className={navItem}>
           <Fa icon="cog" />
-        </a>
+        </Link>
         <div className="grow" />
-        <button
-          type="button"
-          aria-label="notifications"
-          className={navItem}
-          onClick={(e) => e.preventDefault()}
-        >
+        <button type="button" data-nav-item="alerts" aria-label="notifications" className={navItem}>
           <Fa icon="bell" />
         </button>
-        <a
-          href="/login"
-          className={navItem}
-          onClick={(e) => e.preventDefault()}
-        >
+        <Link href="/login" data-nav-item="login" aria-label="login" className={navItem}>
           <Fa icon="user" />
-        </a>
+        </Link>
       </nav>
     </header>
   );

@@ -432,3 +432,11 @@ button .fab {
   animation: none;
   opacity: 1;
 }
+
+/* ---------- page swap: monkeytype fades the old page out (125ms) then the new one in (125ms) ---------- */
+#app > main {
+  animation: fadeIn 0.125s ease-out 0.125s both;
+}
+@media (prefers-reduced-motion) {
+  #app > main { animation: none; }
+}
