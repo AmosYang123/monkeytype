@@ -84,13 +84,14 @@
 /* ---------- base ---------- */
 html {
   scrollbar-gutter: stable;
+  /* unitless so children scale it (body can't hold it: the CSS minifier folds it into px with font-size) */
+  line-height: 1.25;
 }
 body {
   background: var(--bg-color);
   color: var(--text-color);
   font-family: var(--font);
   font-size: 16px;
-  line-height: 20px;
   overflow: hidden auto;
   transition: background 0.25s, transform 0.05s;
 }
@@ -145,6 +146,7 @@ kbd {
 
 }
 
+@layer components {
 /* ---------- font awesome base ---------- */
 .fa,
 .fas,
@@ -175,8 +177,14 @@ kbd {
   text-align: center;
   width: 1.25em;
 }
+button .fas,
+button .far,
+button .fab {
+  pointer-events: none;
+  justify-self: center;
+  line-height: 1.25;
+}
 
-@layer components {
 /* ---------- content grid (layout helper used across the whole site) ---------- */
 .content-grid {
   --padding-inline: 2rem;
@@ -369,4 +377,58 @@ kbd {
 
 @media (prefers-reduced-motion) {
   #caret { animation: none !important; }
+}
+
+/* ---------- typing test words (rules mirror monkeytype's #words CSS) ---------- */
+#words {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  width: 100%;
+  height: fit-content;
+  padding-bottom: 0.5em;
+  user-select: none;
+  transition: opacity 0.25s, filter 0.25s;
+}
+#words.blurred {
+  opacity: 0.25;
+  filter: blur(4px);
+}
+#words .word {
+  position: relative;
+  margin: 0.25em 0.3em;
+  line-height: 1em;
+  border-bottom: 2px solid transparent;
+}
+#words .word.error {
+  border-bottom: 2px solid var(--error-color);
+}
+#words .letter {
+  display: inline-block;
+  color: var(--sub-color);
+  border-bottom: 0.05em solid transparent;
+}
+#words .letter.correct {
+  color: var(--text-color);
+}
+#words .letter.incorrect {
+  color: var(--error-color);
+}
+#words .letter.extra {
+  color: var(--error-extra-color);
+}
+#caret {
+  position: absolute;
+  background: var(--caret-color);
+  border-radius: var(--roundness);
+  transform-origin: 0 0;
+  font-size: 2rem;
+  width: 0.1em;
+  height: 1.2em;
+  animation: 1s infinite caretFlashSmooth;
+  transition: left 0.1s ease-out, top 0.1s ease-out;
+}
+#caret.typing {
+  animation: none;
+  opacity: 1;
 }

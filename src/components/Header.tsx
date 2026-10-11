@@ -19,7 +19,7 @@ export function Header() {
       <Link
         href="/"
         aria-label="Monkeytype Home"
-        className="-m-2 flex h-6 w-max gap-2 rounded-[0.8rem] p-2 font-lexend text-sub"
+        className="-m-2 box-content flex h-6 w-max gap-2 rounded-[0.8rem] p-2 font-lexend text-sub"
       >
         <LogoIcon
           className={cn(

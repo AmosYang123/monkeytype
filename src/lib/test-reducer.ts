@@ -5,6 +5,8 @@ import { accuracy, consistency, countChars, wpmFrom } from "./typing.ts";
 const MAX_EXTRA = 20;
 
 export type TestState = {
+  /** bumps on every reset; lets views remount per test */
+  resetId: number;
   config: TestConfig;
   words: string[];
   /** committed words + the in-progress word (always last, never empty array) */
@@ -31,7 +33,8 @@ export type TestAction =
 
 const emptyChart = (): ChartData => ({ labels: [], wpm: [], raw: [], burst: [], err: [] });
 
-export const initialState = (config: TestConfig, words: string[]): TestState => ({
+export const initialState = (config: TestConfig, words: string[], resetId = 0): TestState => ({
+  resetId,
   config,
   words,
   inputs: [""],
@@ -98,7 +101,7 @@ function finish(s: TestState, now: number): TestState {
 }
 
 export function testReducer(s: TestState, a: TestAction): TestState {
-  if (a.type === "reset") return initialState(a.config, a.words);
+  if (a.type === "reset") return initialState(a.config, a.words, s.resetId + 1);
   if (a.type === "appendWords") return { ...s, words: [...s.words, ...a.words] };
   if (s.finished) return s;
 

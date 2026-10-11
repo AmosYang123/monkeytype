@@ -78,7 +78,7 @@ async function wordsFor(config: TestConfig): Promise<string[]> {
 export function TestProvider({ children }: { children: ReactNode }) {
   // deterministic first render (no random words on the server) → words load on mount
   const [state, dispatch] = useReducer(testReducer, initialState(DEFAULT_CONFIG, []));
-  const [focusMode, setFocusMode] = useState(false);
+  const [typingFocus, setFocusMode] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
   const [now, setNow] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -129,9 +129,7 @@ export function TestProvider({ children }: { children: ReactNode }) {
   }, [remaining, state.config, state.words.length]);
 
   // focus mode ends on test end or any mouse movement
-  useEffect(() => {
-    if (state.finished) setFocusMode(false);
-  }, [state.finished]);
+  const focusMode = typingFocus && !state.finished;
   useEffect(() => {
     if (!focusMode) return;
     document.body.classList.add("focus-mode");

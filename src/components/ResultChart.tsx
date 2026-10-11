@@ -49,7 +49,8 @@ function buildConfig(data: ChartData, vis: ChartVisibility): ChartConfiguration<
   const subAlt = cssVar("--sub-alt-color");
   const error = cssVar("--error-color");
   const rawColor = `${main}99`;
-  const max = Math.max(1, ...data.wpm, ...data.raw, ...data.burst);
+  // same as monkeytype: max over visible speed series, rounded up to a multiple of 10
+  const max = Math.ceil(Math.max(1, ...data.wpm, ...(vis.raw ? data.raw : []), ...(vis.burst ? data.burst : [])) / 10) * 10;
   const axis = {
     ticks: { color: sub, autoSkip: true, autoSkipPadding: 20 },
     title: { color: sub },

@@ -100,7 +100,7 @@ export function TestConfig() {
     <div
       className={cn(
         "relative flex justify-center transition-opacity duration-[125ms] ease-[cubic-bezier(.4,0,.2,1)]",
-        focusMode && "opacity-0",
+        (focusMode || finished) && "opacity-0",
       )}
     >
       <div
