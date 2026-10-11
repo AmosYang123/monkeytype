@@ -41,7 +41,7 @@ function Option({ active, disabled, onClick, children }: OptionProps) {
 export function TestConfig() {
   const { state, focusMode, setConfig, focusInput } = useTest();
   const { config, finished } = state;
-  const hidden = config.mode === "zen" ? "w-0 overflow-hidden opacity-0 pointer-events-none" : "";
+  const sideCard = config.mode === "zen" ? "w-0 overflow-hidden opacity-0 pointer-events-none" : "w-max";
 
   const apply = (patch: Partial<TestConfigState>) => {
     setConfig(patch);
@@ -112,7 +112,7 @@ export function TestConfig() {
           "xl:[--card-gap:2em] xl:[--horizontal-padding:1em]",
         )}
       >
-        <div className={cn("mr-[var(--card-gap)] w-max place-self-end", hidden)}>
+        <div className={cn("mr-[var(--card-gap)] place-self-end", sideCard)}>
           <div className={cn(CARD, "block")}>
             {TOGGLES.map(({ key, icon }) => (
               <Option
@@ -135,7 +135,7 @@ export function TestConfig() {
             </Option>
           ))}
         </div>
-        <div className={cn("relative grid w-max", hidden)}>
+        <div className={cn("relative grid", sideCard)}>
           <div className={cn(CARD, "ml-[var(--card-gap)] grid grid-flow-col")}>{options}</div>
         </div>
       </div>

@@ -70,7 +70,7 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-2">
           <kbd>escape</kbd>
-          <span>or</span>
+          <span className="whitespace-pre"> or </span>
           <kbd>ctrl + shift + p</kbd>
           <span>- command line</span>
         </div>

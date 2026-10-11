@@ -54,7 +54,9 @@ test("generateWords respects count, numbers and punctuation", () => {
   plain.slice(1).forEach((w, i) => assert.notEqual(w, plain[i]));
 
   const punct = generateWords({ ...DEFAULT_CONFIG, punctuation: true }, list, 50, seeded(2));
-  assert.match(punct[0], /^["(]?[A-Z]/);
+  for (let seed = 1; seed <= 200; seed++) {
+    assert.match(generateWords({ ...DEFAULT_CONFIG, punctuation: true }, list, 5, seeded(seed))[0], /^["(]?[A-Z]/);
+  }
   assert.match(punct[punct.length - 1], /[.?!]["')]?$/);
 
   const nums = generateWords({ ...DEFAULT_CONFIG, numbers: true }, list, 200, seeded(3));

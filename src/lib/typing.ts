@@ -49,7 +49,7 @@ function punctuate(words: string[], rng: Rng): string[] {
     else if (r < 0.23) w += pick([";", ":"], rng);
     else if (r < 0.26) w = `"${w}"`;
     else if (r < 0.28) w = `(${w})`;
-    else if (r < 0.3) out.push("-");
+    else if (r < 0.3 && i > 0) out.push("-");
     out.push(w);
   }
   return out;

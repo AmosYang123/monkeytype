@@ -88,7 +88,7 @@ export function Words() {
           <div>Click here or press any key to focus</div>
         </div>
       )}
-      <div id="caret" ref={caretRef} className={cn(!inputFocused && "hidden")} style={{ left: 8.5, top: 6 }} />
+      <div id="caret" ref={caretRef} className={cn(!inputFocused && "invisible")} style={{ left: 8.5, top: 6 }} />
       <div id="words" ref={wordsRef} className={cn(!inputFocused && "blurred")} onClick={focusInput}>
         {targets.slice(firstVisible).map((target, k) => {
           const i = k + firstVisible;
