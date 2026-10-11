@@ -7,6 +7,10 @@ import { CookieModal } from "@/components/CookieModal";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MerchBanner } from "@/components/MerchBanner";
+import { AlertsPopup } from "@/components/modals/AlertsPopup";
+import { ContactModal } from "@/components/modals/ContactModal";
+import { SupportModal } from "@/components/modals/SupportModal";
+import { VersionHistoryModal } from "@/components/modals/VersionHistoryModal";
 import { Notifications } from "@/components/Notifications";
 import { TestProvider } from "@/components/TestProvider";
 
@@ -17,6 +21,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <ConfigEffects />
       <MerchBanner />
       <CookieModal />
+      <ContactModal />
+      <SupportModal />
+      <VersionHistoryModal />
+      <AlertsPopup />
       <CommandLineFab />
       <Notifications />
       <div

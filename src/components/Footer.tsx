@@ -4,6 +4,7 @@ import type { MouseEvent } from "react";
 import { Fa, type FaIconName } from "@/components/icons";
 import { useTest } from "@/components/TestProvider";
 import { cn } from "@/lib/cn";
+import { showModal, type ModalId } from "@/lib/modals";
 
 const noop = (e: MouseEvent) => e.preventDefault();
 
@@ -12,11 +13,12 @@ type FooterLink = {
   label: string;
   href?: string;
   external?: boolean;
+  modal?: ModalId;
 };
 
 const LINKS: FooterLink[] = [
-  { icon: "envelope", label: "contact" },
-  { icon: "donate", label: "support" },
+  { icon: "envelope", label: "contact", modal: "Contact" },
+  { icon: "donate", label: "support", modal: "Support" },
   { icon: "code", label: "github", href: "https://github.com/monkeytypegame/monkeytype", external: true },
   { icon: "discord", label: "discord", href: "https://www.discord.gg/monkeytype", external: true },
   { icon: "twitter", label: "twitter", href: "https://x.com/monkeytype", external: true },
@@ -27,7 +29,7 @@ const LINKS: FooterLink[] = [
 
 const ITEM = "mt-button !p-[6px] !gap-[6px] text-xs leading-[15px] h-[27px]";
 
-function Item({ icon, label, href, external }: FooterLink) {
+function Item({ icon, label, href, external, modal }: FooterLink) {
   const content = (
     <>
       <Fa icon={icon} />
@@ -36,7 +38,7 @@ function Item({ icon, label, href, external }: FooterLink) {
   );
   if (!href) {
     return (
-      <button type="button" className={ITEM} onClick={noop}>
+      <button type="button" className={ITEM} onClick={modal ? () => showModal(modal) : noop}>
         {content}
       </button>
     );
@@ -97,7 +99,7 @@ export function Footer() {
             <Fa icon="palette" />
             <div>serika dark</div>
           </button>
-          <button type="button" className={cn(ITEM, "items-baseline")} onClick={noop}>
+          <button type="button" className={cn(ITEM, "items-baseline")} onClick={() => showModal("VersionHistory")}>
             <Fa icon="code-branch" />
             <div>v26.32.0</div>
           </button>
