@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { Fa, LogoIcon } from "@/components/icons";
 import { useTest } from "@/components/TestProvider";
 import { cn } from "@/lib/cn";
+import { showModal } from "@/lib/modals";
 
 const navItem = "mt-button aspect-square opacity-(--nav-focus-opacity)";
 
@@ -60,7 +61,7 @@ export function Header() {
           <Fa icon="cog" />
         </Link>
         <div className="grow" />
-        <button type="button" data-nav-item="alerts" aria-label="notifications" className={navItem}>
+        <button type="button" data-nav-item="alerts" aria-label="notifications" className={navItem} onClick={() => showModal("Alerts")}>
           <Fa icon="bell" />
         </button>
         <Link href="/login" data-nav-item="login" aria-label="login" className={navItem}>
