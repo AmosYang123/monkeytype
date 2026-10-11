@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { CommandLineFab } from "@/components/CommandLineFab";
+import { ConfigEffects } from "@/components/ConfigProvider";
 import { CookieModal } from "@/components/CookieModal";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -13,6 +14,7 @@ import { TestProvider } from "@/components/TestProvider";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <TestProvider>
+      <ConfigEffects />
       <MerchBanner />
       <CookieModal />
       <CommandLineFab />
