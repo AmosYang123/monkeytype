@@ -6,23 +6,27 @@ import { ModalButton } from "@/components/modals/ModalButton";
 import { AnimatedModal } from "@/components/ui/AnimatedModal";
 import { readCookieConsent, writeCookieConsent, type CookieConsent } from "@/lib/cookie-consent";
 import { hideModal, showModal } from "@/lib/modals";
+import { notify } from "@/lib/notifications";
 
 /** Reopen the cookie dialog (e.g. from the settings page). */
 export const openCookiesModal = () => showModal("Cookies");
 
-const NONE: CookieConsent = { analytics: false, sponsorship: false };
+const NONE: CookieConsent = { security: true, analytics: false, sentry: false };
+const ALL: CookieConsent = { security: true, analytics: true, sentry: true };
 
 function Setting({
   title,
   description,
   checked,
   disabled,
+  hideCheckbox,
   onChange,
 }: {
   title: string;
   description: ReactNode;
   checked: boolean;
   disabled?: boolean;
+  hideCheckbox?: boolean;
   onChange?: (checked: boolean) => void;
 }) {
   return (
@@ -32,6 +36,7 @@ function Setting({
         <div className="text-text">{description}</div>
       </div>
       <input
+        hidden={hideCheckbox}
         type="checkbox"
         className="text-2xl"
         checked={checked}
@@ -76,22 +81,38 @@ export function CookieModal() {
       {showSettings ? (
         <div className="grid gap-4">
           <Setting
-            title="essential"
-            description="Required cookies that keep the site secure and working. They do not store any personal information."
+            title="security"
+            description="We use Cloudflare cookies to improve security and performance of our site. They do not store any personal information and are required."
             checked
             disabled
           />
           <Setting
             title="analytics"
-            description="We use analytics to track the overall traffic and demographics of our site."
+            description="We use Google Analytics to track the overall traffic and demographics of our site."
             checked={accepted.analytics}
             onChange={(analytics) => setAccepted({ ...accepted, analytics })}
           />
           <Setting
-            title="sponsorship"
-            description="Our sponsorship partners may use cookies to deliver ads that are more relevant to you."
-            checked={accepted.sponsorship}
-            onChange={(sponsorship) => setAccepted({ ...accepted, sponsorship })}
+            title="sentry"
+            description="We use Sentry to track errors and performance issues on our site, as well as record anonymized user sessions to help us debug issues and improve experience."
+            checked={accepted.sentry}
+            onChange={(sentry) => setAccepted({ ...accepted, sentry })}
+          />
+          <Setting
+            title="advertising"
+            hideCheckbox
+            description={
+              <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                <div>Our advertising partner may use cookies to deliver ads that are more relevant to you.</div>
+                <ModalButton
+                  className="text-[0.85em]"
+                  onClick={() => notify("There is no advertising partner in this clone.", { level: "notice" })}
+                >
+                  <Fa icon="external-link-alt" />
+                </ModalButton>
+              </div>
+            }
+            checked={false}
           />
           <ModalButton className="w-full" onClick={() => save(accepted)}>
             accept selected
@@ -101,7 +122,7 @@ export function CookieModal() {
         <div className="grid gap-4">
           <div>Cookies enhance your experience and help us improve our website.</div>
           <div className="grid gap-2">
-            <ModalButton active className="w-full" onClick={() => save({ analytics: true, sponsorship: true })}>
+            <ModalButton active className="w-full" onClick={() => save(ALL)}>
               accept all
             </ModalButton>
             <ModalButton className="w-full" onClick={() => save(NONE)}>
