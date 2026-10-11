@@ -80,6 +80,7 @@
   --font-lexend: "Lexend Deca", sans-serif;
 }
 
+@layer base {
 /* ---------- base ---------- */
 html {
   scrollbar-gutter: stable;
@@ -142,6 +143,8 @@ kbd {
   line-height: 12px;
 }
 
+}
+
 /* ---------- font awesome base ---------- */
 .fa,
 .fas,
@@ -173,6 +176,7 @@ kbd {
   width: 1.25em;
 }
 
+@layer components {
 /* ---------- content grid (layout helper used across the whole site) ---------- */
 .content-grid {
   --padding-inline: 2rem;
@@ -254,6 +258,8 @@ kbd {
 .mt-button[disabled] {
   opacity: 0.33;
   pointer-events: none;
+}
+
 }
 
 /* ---------- balloon tooltips ---------- */
