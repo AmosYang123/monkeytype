@@ -1,5 +1,5 @@
 // Ports of monkeytype's zod schemas (zod 3.23.8 messages): UserNameSchema, UserEmailSchema, NewPasswordSchema.
-import { TYPO_LIST } from "./typo-list";
+import { TYPO_LIST } from "./typo-list.ts";
 
 export const NOT_AVAILABLE_MESSAGE = "Accounts are not available in this clone";
 
