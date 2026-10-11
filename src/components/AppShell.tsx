@@ -6,6 +6,7 @@ import { CookieModal } from "@/components/CookieModal";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { MerchBanner } from "@/components/MerchBanner";
+import { Notifications } from "@/components/Notifications";
 import { TestProvider } from "@/components/TestProvider";
 
 /** Site chrome shared by every route; each page renders its own <main>. */
@@ -15,6 +16,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <MerchBanner />
       <CookieModal />
       <CommandLineFab />
+      <Notifications />
       <div
         id="app"
         className="content-grid min-h-screen grid-rows-[auto_1fr_auto] gap-y-8 pt-[calc(var(--banner-height,0px)+2rem)] pb-8"
