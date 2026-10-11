@@ -20,9 +20,9 @@ const LINKS: FooterLink[] = [
   { icon: "code", label: "github", href: "https://github.com/monkeytypegame/monkeytype", external: true },
   { icon: "discord", label: "discord", href: "https://www.discord.gg/monkeytype", external: true },
   { icon: "twitter", label: "twitter", href: "https://x.com/monkeytype", external: true },
-  { icon: "file-contract", label: "terms", href: "/terms-of-service.html" },
-  { icon: "shield-alt", label: "security", href: "/security-policy.html" },
-  { icon: "lock", label: "privacy", href: "/privacy-policy.html" },
+  { icon: "file-contract", label: "terms", href: "/terms-of-service.html", external: true },
+  { icon: "shield-alt", label: "security", href: "/security-policy.html", external: true },
+  { icon: "lock", label: "privacy", href: "/privacy-policy.html", external: true },
 ];
 
 const ITEM = "mt-button !p-[6px] !gap-[6px] text-xs leading-[15px] h-[27px]";
