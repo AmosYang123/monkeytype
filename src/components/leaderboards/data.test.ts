@@ -49,3 +49,12 @@ test("countdown and title text", () => {
   assert.equal(nextUpdateText("weekly", NOW), "Next reset in: 08:33:21");
   assert.equal(titleText(DEFAULT_SELECTION), "All-time English  Time 15 Leaderboard");
 });
+
+test("initial hydration clock produces a valid deterministic leaderboard", () => {
+  for (const type of ["allTime", "weekly", "daily"] as const) {
+    assert.match(nextUpdateText(type, 0), /^Next (update|reset) in: [\d:]+$/);
+    const selection = { ...DEFAULT_SELECTION, type };
+    const entries = type === "weekly" ? xpEntries(selection, 0) : speedEntries(selection, 0);
+    assert.equal(entries.length, type === "daily" ? 200 : 1000);
+  }
+});

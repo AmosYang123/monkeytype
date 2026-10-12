@@ -18,6 +18,7 @@ type Props = {
   closeOnEscape?: boolean;
   closeOnWrapperClick?: boolean;
   onEscape?: () => void;
+  beforeShow?: () => void;
   afterShow?: () => void;
   afterHide?: () => void;
 };
@@ -43,11 +44,11 @@ export function AnimatedModal(props: Props) {
   useEffect(() => {
     const dialog = dialogRef.current;
     if (visible) {
-      if (!dialog) {
-        const id = requestAnimationFrame(() => setMounted(true));
-        return () => cancelAnimationFrame(id);
+      if (!dialog) return;
+      if (!dialog.open) {
+        propsRef.current.beforeShow?.();
+        dialog.showModal();
       }
-      if (!dialog.open) dialog.showModal();
       const raf = requestAnimationFrame(() => {
         setShown(true);
         const p = propsRef.current;
@@ -73,8 +74,10 @@ export function AnimatedModal(props: Props) {
       cancelAnimationFrame(raf);
       clearTimeout(t);
     };
-  }, [visible, mounted]);
+  }, [visible]);
 
+  // keep the dialog rendered after hide so it can fade out; unmounted by the hide timeout
+  if (visible && !mounted) setMounted(true);
   if (!visible && !mounted) return null;
 
   const duration = chained ? DURATION * 0.75 : DURATION;

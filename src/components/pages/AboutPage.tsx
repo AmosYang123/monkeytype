@@ -4,6 +4,7 @@ import { AboutButton } from "@/components/about/AboutButton";
 import { H2, H3 } from "@/components/about/Headers";
 import { NameGrid } from "@/components/about/NameGrid";
 import { HISTOGRAM_TOTAL, SpeedHistogram } from "@/components/about/SpeedHistogram";
+import { showModal } from "@/lib/modals";
 
 const STATS = [
   ["total tests started", "5.23", "billion"],
@@ -37,8 +38,6 @@ const CREDITS = [
   ],
 ] as const;
 
-// ponytail: no-op until the footer's support/contact modals are wired up
-const noop = () => undefined;
 
 export function AboutPage() {
   return (
@@ -132,7 +131,7 @@ export function AboutPage() {
             support.
           </p>
           <div className="mt-4 text-xl">
-            <AboutButton icon="donate" text="support" onClick={noop} className="w-full p-8" />
+            <AboutButton icon="donate" text="support" onClick={() => showModal("Support")} className="w-full p-8" />
           </div>
         </section>
         <div></div>
@@ -143,7 +142,7 @@ export function AboutPage() {
             contact me directly.
           </p>
           <div className="mt-4 grid w-full grid-cols-1 gap-4 text-xl sm:grid-cols-2 lg:grid-cols-4">
-            <AboutButton text="mail" icon="envelope" onClick={noop} className="w-full p-8" />
+            <AboutButton text="mail" icon="envelope" onClick={() => showModal("Contact")} className="w-full p-8" />
             <AboutButton text="twitter" icon="twitter" href="https://x.com/monkeytype" className="w-full p-8" />
             <AboutButton text="discord" icon="discord" href="https://discord.gg/monkeytype" className="w-full p-8" />
             <AboutButton

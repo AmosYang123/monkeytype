@@ -38,6 +38,11 @@ const set = (next: State) => {
 
 export function showModal(id: ModalId): void {
   if (state.open === id) return;
+  const stacked = state.stack.indexOf(id);
+  if (stacked !== -1) {
+    set({ open: id, stack: state.stack.slice(0, stacked), chained: true });
+    return;
+  }
   if (state.open) set({ open: id, stack: [...state.stack, state.open], chained: true });
   else set({ open: id, stack: [], chained: false });
 }

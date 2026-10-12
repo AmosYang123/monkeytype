@@ -83,7 +83,7 @@ export function MerchBanner() {
           </div>
         </div>
       )}
-      <div className="fixed top-0 left-0 -z-10 h-2 w-screen bg-main" />
+      <div className="fixed top-0 left-0 -z-10 h-2 w-full bg-main" />
     </>
   );
 }

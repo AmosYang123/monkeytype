@@ -61,11 +61,13 @@ export function generateWords(
   count: number,
   rng: Rng = Math.random,
 ): string[] {
+  if (!wordlist.length) throw new Error("Cannot generate words from an empty list");
+  const pool = [...new Set(wordlist)];
   const words: string[] = [];
   for (let i = 0; i < count; i++) {
-    let w = pick(wordlist, rng);
-    // never the same word twice in a row
-    while (words.length && w === words[words.length - 1] && wordlist.length > 1) w = pick(wordlist, rng);
+    let index = Math.floor(rng() * pool.length);
+    if (pool.length > 1 && pool[index] === words.at(-1)) index = (index + 1 + Math.floor(rng() * (pool.length - 1))) % pool.length;
+    let w = pool[index];
     if (config.numbers && rng() < 0.1) w = String(Math.floor(rng() * 10 ** (1 + Math.floor(rng() * 3))));
     words.push(w);
   }
@@ -73,12 +75,13 @@ export function generateWords(
 }
 
 /** Splits a typed word against its target into per-letter states (extras appended). */
-export function letterStates(target: string, typed: string | undefined): Letter[] {
+export function letterStates(target: string, typed: string | undefined, lazy = false): Letter[] {
+  const typedLetters = typed === undefined ? [] : [...typed];
   const letters: Letter[] = [...target].map((char, i) => {
-    if (typed === undefined || i >= typed.length) return { char, state: "untyped" };
-    return { char, state: typed[i] === char ? "correct" : "incorrect" };
+    if (i >= typedLetters.length) return { char, state: "untyped" };
+    return { char, state: (lazy ? typedLetters[i].toLocaleLowerCase() === char.toLocaleLowerCase() : typedLetters[i] === char) ? "correct" : "incorrect" };
   });
-  if (typed) for (const char of typed.slice(target.length)) letters.push({ char, state: "extra" });
+  if (typed) for (const char of typedLetters.slice([...target].length)) letters.push({ char, state: "extra" });
   return letters;
 }
 
@@ -92,24 +95,33 @@ export function countChars(targets: readonly string[], inputs: readonly string[]
   const c: CharCounts = { correct: 0, incorrect: 0, extra: 0, missed: 0, correctWordChars: 0, allChars: 0 };
   inputs.forEach((typed, i) => {
     const target = targets[i] ?? "";
+    const targetLetters = [...target];
+    const typedLetters = [...typed];
     const isLast = i === inputs.length - 1;
     const committed = !isLast || finished;
-    for (let j = 0; j < Math.max(target.length, typed.length); j++) {
-      if (j >= typed.length) {
+    for (let j = 0; j < Math.max(targetLetters.length, typedLetters.length); j++) {
+      if (j >= typedLetters.length) {
         if (committed && !isLast) c.missed++;
-      } else if (j >= target.length) c.extra++;
-      else if (typed[j] === target[j]) c.correct++;
+      } else if (j >= targetLetters.length) c.extra++;
+      else if (typedLetters[j] === targetLetters[j]) c.correct++;
       else c.incorrect++;
     }
-    c.allChars += typed.length + (isLast ? 0 : 1);
+    c.allChars += typedLetters.length + (isLast ? 0 : 1);
     const wordCorrect = isLast ? target.startsWith(typed) && typed.length > 0 : typed === target;
-    if (wordCorrect) c.correctWordChars += typed.length + (isLast ? 0 : 1);
+    if (wordCorrect) c.correctWordChars += typedLetters.length + (isLast ? 0 : 1);
     if (!isLast) c.correct += typed === target ? 1 : 0; // the space after a correct word
   });
   return c;
 }
 
 export const wpmFrom = (chars: number, seconds: number) => (seconds > 0 ? (chars / 5) * (60 / seconds) : 0);
+
+/** Per-word burst in wpm: typed chars of one word over the time from its start to its commit. */
+export const burstWpm = (chars: number, ms: number) => (ms > 0 ? Math.round(wpmFrom(chars, ms / 1000)) : Infinity);
+
+/** Min-burst "flex" threshold (monkeytype's whorf). `len` is the target word length incl. the commit space. */
+export const flexBurstThreshold = (speed: number, len: number) =>
+  Math.min(speed, Math.floor(speed * Math.pow(1.03, -2 * (len - 3))));
 
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 const stdDev = (xs: number[]) => {

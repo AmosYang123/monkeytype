@@ -3,6 +3,7 @@
 import { Fa, type FaIconName } from "@/components/icons";
 import { AnimatedModal } from "@/components/ui/AnimatedModal";
 import { ModalButton } from "./ModalButton";
+import { notify } from "@/lib/notifications";
 
 const LINKS: { icon: FaIconName; text: string; href: string }[] = [
   { icon: "donate", text: "Donate", href: "https://ko-fi.com/monkeytype" },
@@ -21,8 +22,7 @@ export function SupportModal() {
         continued support. <Fa icon="heart" />
       </div>
       <div className="grid grid-cols-1 gap-4 xs:grid-cols-2 md:grid-cols-4">
-        {/* ponytail: this clone has no ads, so the button does nothing (source opens the ads commandline) */}
-        <ModalButton className={BUTTON}>
+        <ModalButton className={BUTTON} onClick={() => notify("Advertising is unavailable in this local clone.")}>
           <Fa icon="ad" style={ICON} />
           Enable Ads
         </ModalButton>

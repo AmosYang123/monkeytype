@@ -5,6 +5,9 @@ import { Fa, type FaIconName } from "@/components/icons";
 import { useTest } from "@/components/TestProvider";
 import { cn } from "@/lib/cn";
 import { showModal, type ModalId } from "@/lib/modals";
+import { useConfig } from "@/components/ConfigProvider";
+import { setConfig } from "@/lib/config/store";
+import { openCommandline } from "@/lib/commandline-bridge";
 
 const noop = (e: MouseEvent) => e.preventDefault();
 
@@ -57,12 +60,14 @@ function Item({ icon, label, href, external, modal }: FooterLink) {
 
 export function Footer() {
   const { focusMode } = useTest();
+  const config = useConfig();
   const fade = focusMode && "opacity-0";
   return (
     <footer className="relative text-xs text-sub">
       <div
         className={cn(
           "mb-8 flex flex-col items-center gap-2 transition-opacity duration-250",
+          !config.showKeyTips && "hidden",
           fade,
         )}
       >
@@ -94,10 +99,10 @@ export function Footer() {
             className={cn(ITEM, "items-baseline")}
             aria-label="Shift-click to toggle custom theme"
             data-balloon-pos="left"
-            onClick={noop}
+            onClick={(event) => event.shiftKey ? setConfig("customTheme", !config.customTheme) : openCommandline("themes")}
           >
             <Fa icon="palette" />
-            <div>serika dark</div>
+            <div>{config.customTheme ? "custom" : config.theme.replaceAll("_", " ")}</div>
           </button>
           <button type="button" className={cn(ITEM, "items-baseline")} onClick={() => showModal("VersionHistory")}>
             <Fa icon="code-branch" />

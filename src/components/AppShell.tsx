@@ -13,12 +13,20 @@ import { SupportModal } from "@/components/modals/SupportModal";
 import { VersionHistoryModal } from "@/components/modals/VersionHistoryModal";
 import { Notifications } from "@/components/Notifications";
 import { TestProvider } from "@/components/TestProvider";
+import { ThemeAutomation } from "@/components/ThemeAutomation";
+import { CommandLine } from "@/components/CommandLine";
+import { TestPopups } from "@/components/modals/TestPopups";
+import { SettingsModals } from "@/components/settings/SettingsModals";
 
 /** Site chrome shared by every route; each page renders its own <main>. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <TestProvider>
       <ConfigEffects />
+      <ThemeAutomation />
+      <CommandLine />
+      <TestPopups />
+      <SettingsModals />
       <MerchBanner />
       <CookieModal />
       <ContactModal />

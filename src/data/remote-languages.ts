@@ -1,4 +1,4 @@
-// Word lists over 1MB are not vendored; /api/languages/[name] fetches and caches them.
+// Previously proxied dictionaries; keep their API URLs as redirects to bundled files.
 export const REMOTE_LANGUAGES: readonly string[] = [
   "belarusian_100k",
   "belarusian_50k",

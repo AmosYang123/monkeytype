@@ -1,5 +1,5 @@
-// Loads monkeytype word lists: vendored ones from /languages, big ones via the caching proxy.
-import { REMOTE_LANGUAGES } from "@/data/remote-languages";
+// All word lists are bundled locally, including the large dictionaries.
+import { parseWordList } from "./engine-options.ts";
 
 export type LanguageData = {
   name: string;
@@ -14,7 +14,7 @@ export type LanguageData = {
 const cache = new Map<string, Promise<LanguageData>>();
 
 export function languageUrl(name: string): string {
-  return REMOTE_LANGUAGES.includes(name) ? `/api/languages/${name}` : `/languages/${name}.json`;
+  return `/languages/${encodeURIComponent(name)}.json`;
 }
 
 export function loadLanguage(name: string): Promise<LanguageData> {
@@ -22,7 +22,9 @@ export function loadLanguage(name: string): Promise<LanguageData> {
   if (!p) {
     p = fetch(languageUrl(name)).then(async (res) => {
       if (!res.ok) throw new Error(`language ${name}: HTTP ${res.status}`);
-      return (await res.json()) as LanguageData;
+      const json: unknown = await res.json();
+      if (typeof json !== "object" || json === null || !("words" in json)) throw new Error("Invalid language data");
+      return { name, words: parseWordList(json.words), rightToLeft: "rightToLeft" in json && json.rightToLeft === true };
     });
     // don't cache failures, so a retry can succeed
     p.catch(() => cache.delete(name));

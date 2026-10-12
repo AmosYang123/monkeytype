@@ -15,6 +15,7 @@ import {
   type ScriptableContext,
 } from "chart.js";
 import type { ChartData } from "@/types/test";
+import { fontCssFamily, useConfig } from "@/components/ConfigProvider";
 
 Chart.register(
   LineController,
@@ -30,7 +31,6 @@ Chart.register(
 Chart.defaults.animation = false;
 Chart.defaults.elements.line.tension = 0.5;
 Chart.defaults.elements.line.fill = "origin";
-Chart.defaults.font.family = "Roboto Mono";
 
 export type ChartVisibility = { raw: boolean; burst: boolean; errors: boolean };
 
@@ -43,7 +43,7 @@ function errorRadius(size: number) {
   };
 }
 
-function buildConfig(data: ChartData, vis: ChartVisibility): ChartConfiguration<"line" | "scatter", number[], string> {
+function buildConfig(data: ChartData, vis: ChartVisibility, startAtZero: boolean): ChartConfiguration<"line" | "scatter", number[], string> {
   const main = cssVar("--main-color");
   const sub = cssVar("--sub-color");
   const subAlt = cssVar("--sub-alt-color");
@@ -57,7 +57,8 @@ function buildConfig(data: ChartData, vis: ChartVisibility): ChartConfiguration<
     grid: { color: subAlt, tickColor: subAlt },
     border: { color: subAlt },
   };
-  const yRange = { beginAtZero: true, min: 0, max };
+  const min = startAtZero ? 0 : Math.max(0, Math.floor(Math.min(...data.wpm, ...(vis.raw ? data.raw : []), ...(vis.burst ? data.burst : [])) / 10) * 10 - 10);
+  const yRange = { beginAtZero: startAtZero, min, max };
 
   return {
     type: "line",
@@ -99,6 +100,8 @@ function buildConfig(data: ChartData, vis: ChartVisibility): ChartConfiguration<
           hidden: !vis.errors,
           borderColor: error,
           backgroundColor: error,
+          pointBackgroundColor: error,
+          pointBorderColor: error,
           borderWidth: 2,
           order: 1,
           yAxisID: "error",
@@ -156,16 +159,19 @@ function buildConfig(data: ChartData, vis: ChartVisibility): ChartConfiguration<
   };
 }
 
-export function ResultChart({ data, visibility }: { data: ChartData; visibility: ChartVisibility }) {
+export function ResultChart({ data, visibility, startAtZero = true }: { data: ChartData; visibility: ChartVisibility; startAtZero?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { fontFamily } = useConfig();
 
   // chart is rebuilt when data or visibility changes (animation is off, so it is indistinguishable from an update)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const chart = new Chart(canvas, buildConfig(data, visibility));
+    // like monkeytype: the chart uses the configured font
+    Chart.defaults.font.family = fontCssFamily(fontFamily);
+    const chart = new Chart(canvas, buildConfig(data, visibility, startAtZero));
     return () => chart.destroy();
-  }, [data, visibility]);
+  }, [data, visibility, startAtZero, fontFamily]);
 
   return <canvas ref={canvasRef} />;
 }

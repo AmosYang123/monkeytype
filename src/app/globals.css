@@ -370,6 +370,16 @@ button .fab {
     opacity: 1;
   }
 }
+@keyframes caretFlashHard {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  to {
+    opacity: 0;
+  }
+}
 @keyframes fadeIn {
   0% { opacity: 0; }
   to { opacity: 1; }
@@ -388,11 +398,12 @@ button .fab {
   height: fit-content;
   padding-bottom: 0.5em;
   user-select: none;
-  transition: opacity 0.25s, filter 0.25s;
 }
+/* blurring fades in over .25s, refocusing clears it instantly (monkeytype test-ui) */
 #words.blurred {
   opacity: 0.25;
   filter: blur(4px);
+  transition: opacity 0.25s, filter 0.25s;
 }
 #words .word {
   position: relative;
@@ -417,17 +428,35 @@ button .fab {
 #words .letter.extra {
   color: var(--error-extra-color);
 }
+/* indicateTypos below/both; filled by Words renderHints */
+#words .word .hints hint {
+  position: absolute;
+  bottom: -1.1em;
+  left: 0;
+  transform: translate(-50%);
+  font-size: 0.75em;
+  line-height: initial;
+  color: var(--text-color);
+  opacity: 0.5;
+  padding: 1px;
+  display: grid;
+  justify-content: center;
+  text-align: center;
+  text-shadow: none;
+}
 #caret {
   position: absolute;
   background: var(--caret-color);
   border-radius: var(--roundness);
   transform-origin: 0 0;
-  font-size: 2rem;
   width: 0.1em;
   height: 1.2em;
   animation: 1s infinite caretFlashSmooth;
-  transition: left 0.1s ease-out, top 0.1s ease-out;
 }
+#caret.hard {
+  animation-name: caretFlashHard;
+}
+/* focus mode (typing): solid caret; blinking resumes when focus mode ends */
 #caret.typing {
   animation: none;
   opacity: 1;

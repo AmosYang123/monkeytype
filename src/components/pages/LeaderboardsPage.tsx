@@ -23,12 +23,16 @@ function Leaderboards() {
   const pathname = usePathname();
   const params = useSearchParams();
   const [previous, setPrevious] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(0);
 
   useEffect(() => {
+    // Match the prerendered clock before switching to local time after hydration.
+    queueMicrotask(() => setNow(Date.now()));
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (now === 0) return null;
 
   const selection: Selection = { ...selectionFromParams(params), previous };
   const requested = pageFromParams(params);
@@ -49,11 +53,11 @@ function Leaderboards() {
   );
 
   return (
-    <div className="flex flex-col gap-8 lg:-mx-4 lg:flex-row">
+    <div className="flex min-w-0 flex-col gap-8 lg:-mx-4 lg:flex-row">
       <div className="w-full shrink-0 lg:w-60 2xl:w-75">
         <Sidebar selection={selection} onSelect={onSelect} />
       </div>
-      <div className="flex w-full flex-1 flex-col gap-8">
+      <div className="flex min-w-0 w-full flex-1 flex-col gap-8">
         <Title selection={selection} now={now} onTogglePrevious={() => setPrevious((p) => !p)} />
         <div className="h-1 w-full rounded bg-sub-alt" />
         <div>
@@ -61,7 +65,7 @@ function Leaderboards() {
             <NextUpdate type={selection.type} now={now} />
             {navigation("w-full sm:w-max", (p) => go(selection, p))}
           </div>
-          <div>
+          <div className="overflow-x-auto">
             {xp ? <XpTable entries={xp.slice(...range)} /> : <SpeedTable entries={(speed ?? []).slice(...range)} />}
           </div>
           <div className="mt-4 grid grid-cols-1 items-center justify-between text-sm sm:text-base">

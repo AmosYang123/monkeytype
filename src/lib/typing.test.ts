@@ -62,3 +62,9 @@ test("generateWords respects count, numbers and punctuation", () => {
   const nums = generateWords({ ...DEFAULT_CONFIG, numbers: true }, list, 200, seeded(3));
   assert.ok(nums.some((w) => /^\d+$/.test(w)));
 });
+
+
+test("lazy letter states preserve displayed text while accepting differing case", () => {
+  assert.deepEqual(letterStates("HI", "hi", true), [{ char: "H", state: "correct" }, { char: "I", state: "correct" }]);
+  assert.equal(letterStates("HI", "hi")[0].state, "incorrect");
+});

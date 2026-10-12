@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Fa, type FaIconName } from "@/components/icons";
 import { useTest } from "@/components/TestProvider";
 import { cn } from "@/lib/cn";
+import { showModal } from "@/lib/modals";
 import { MODE_OPTIONS } from "@/lib/typing";
 import type { TestConfig as TestConfigState } from "@/types/test";
 
@@ -21,7 +22,8 @@ const TOGGLES: { key: "punctuation" | "numbers"; icon: FaIconName }[] = [
 ];
 
 const CARD = "rounded-lg bg-sub-alt px-[var(--horizontal-padding)]";
-const BTN = "mt-button py-[var(--vertical-padding)] px-[var(--horizontal-padding)]";
+const BTN =
+  "mt-button py-[var(--vertical-padding)] px-[var(--horizontal-padding)]";
 
 type OptionProps = {
   active?: boolean;
@@ -32,7 +34,12 @@ type OptionProps = {
 
 function Option({ active, disabled, onClick, children }: OptionProps) {
   return (
-    <button type="button" className={cn(BTN, active && "active")} disabled={disabled} onClick={onClick}>
+    <button
+      type="button"
+      className={cn(BTN, active && "active")}
+      disabled={disabled}
+      onClick={onClick}
+    >
       {children}
     </button>
   );
@@ -41,7 +48,10 @@ function Option({ active, disabled, onClick, children }: OptionProps) {
 export function TestConfig() {
   const { state, focusMode, setConfig, focusInput } = useTest();
   const { config, finished } = state;
-  const sideCard = config.mode === "zen" ? "w-0 overflow-hidden opacity-0 pointer-events-none" : "w-max";
+  const sideCard =
+    config.mode === "zen"
+      ? "w-0 overflow-hidden opacity-0 pointer-events-none"
+      : "w-max";
 
   const apply = (patch: Partial<TestConfigState>) => {
     setConfig(patch);
@@ -53,11 +63,16 @@ export function TestConfig() {
     options = (
       <>
         {MODE_OPTIONS.time.map((n) => (
-          <Option key={n} active={config.time === n} disabled={finished} onClick={() => apply({ time: n })}>
+          <Option
+            key={n}
+            active={config.time === n}
+            disabled={finished}
+            onClick={() => apply({ time: n })}
+          >
             {n}
           </Option>
         ))}
-        <Option disabled={finished} onClick={focusInput}>
+        <Option disabled={finished} onClick={() => showModal("TestDuration")}>
           <Fa icon="tools" />
         </Option>
       </>
@@ -66,11 +81,19 @@ export function TestConfig() {
     options = (
       <>
         {MODE_OPTIONS.words.map((n) => (
-          <Option key={n} active={config.words === n} disabled={finished} onClick={() => apply({ words: n })}>
+          <Option
+            key={n}
+            active={config.words === n}
+            disabled={finished}
+            onClick={() => apply({ words: n })}
+          >
             {n}
           </Option>
         ))}
-        <Option disabled={finished} onClick={focusInput}>
+        <Option
+          disabled={finished}
+          onClick={() => showModal("CustomWordAmount")}
+        >
           <Fa icon="tools" />
         </Option>
       </>
@@ -79,18 +102,23 @@ export function TestConfig() {
     options = (
       <>
         {MODE_OPTIONS.quote.map((q) => (
-          <Option key={q} active={config.quoteLength === q} disabled={finished} onClick={() => apply({ quoteLength: q })}>
+          <Option
+            key={q}
+            active={config.quoteLength === q}
+            disabled={finished}
+            onClick={() => apply({ quoteLength: q })}
+          >
             {q}
           </Option>
         ))}
-        <Option disabled={finished} onClick={focusInput}>
+        <Option disabled={finished} onClick={() => showModal("QuoteSearch")}>
           <Fa icon="search" />
         </Option>
       </>
     );
   } else if (config.mode === "custom") {
     options = (
-      <Option disabled={finished} onClick={focusInput}>
+      <Option disabled={finished} onClick={() => showModal("CustomText")}>
         change
       </Option>
     );
@@ -129,20 +157,28 @@ export function TestConfig() {
         </div>
         <div className={cn(CARD, "z-[2] block")}>
           {MODES.map(({ mode, icon }) => (
-            <Option key={mode} active={config.mode === mode} disabled={finished} onClick={() => apply({ mode })}>
+            <Option
+              key={mode}
+              active={config.mode === mode}
+              disabled={finished}
+              onClick={() => apply({ mode })}
+            >
               <Fa icon={icon} />
               {mode}
             </Option>
           ))}
         </div>
         <div className={cn("relative grid", sideCard)}>
-          <div className={cn(CARD, "ml-[var(--card-gap)] grid grid-flow-col")}>{options}</div>
+          <div className={cn(CARD, "ml-[var(--card-gap)] grid grid-flow-col")}>
+            {options}
+          </div>
         </div>
       </div>
       <button
         type="button"
         className="mt-button mx-auto gap-2 bg-sub-alt px-4 py-2 text-base leading-5 md:hidden"
         disabled={finished}
+        onClick={() => showModal("MobileTestConfig")}
       >
         <Fa icon="cog" fw={false} />
         test settings
