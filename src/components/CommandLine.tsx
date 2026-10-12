@@ -24,6 +24,7 @@ import type { Config } from "@/lib/config/types";
 import { cn } from "@/lib/cn";
 import { getOpenModal, hideModal, showModal, useIsModalOpen } from "@/lib/modals";
 import { clearAllNotifications } from "@/lib/notifications";
+import { emitTestEvent } from "@/lib/test-events";
 import { THEMES } from "@/lib/theme";
 import { validSettingsPatch } from "@/lib/test-settings";
 
@@ -130,6 +131,10 @@ export function CommandLine() {
     if (action.type === "route") router.push(action.path);
     else if (action.type === "url") window.open(action.url);
     else if (action.type === "clearNotifications") clearAllNotifications();
+    else if (action.type === "testEvent") {
+      router.push("/");
+      emitTestEvent(action.name);
+    }
     else if (document.fullscreenElement) void document.exitFullscreen();
     else void document.documentElement.requestFullscreen();
   };

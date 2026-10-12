@@ -1,6 +1,8 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { AccountPage } from "@/components/pages/AccountPage";
 
-// signed-out visitors are sent to the login page, like monkeytype.com/account
+export const metadata: Metadata = { title: "Account" };
+
 export default function Page() {
-  redirect("/login");
+  return <AccountPage />;
 }

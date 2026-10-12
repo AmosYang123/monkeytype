@@ -32,7 +32,7 @@ function useCapsLock() {
 }
 
 export function TypingTest() {
-  const { state, counter, focusMode, inputFocused, restart, loadError, paceAverageWpm } = useTest();
+  const { state, counter, focusMode, inputFocused, restart, loadError, paceAverageWpm, pacePbWpm, paceDailyWpm } = useTest();
   const config = useConfig();
   const capsLock = useCapsLock();
   const seconds = state.lastSecond;
@@ -50,7 +50,7 @@ export function TypingTest() {
         </div>
       )}
       <div className={cn("flex flex-wrap justify-center gap-x-4 text-base leading-6 text-sub transition-opacity duration-125 select-none", fade)}>
-        {testNotices(config, paceAverageWpm, state.isRepeated).map((notice) => {
+        {testNotices(config, paceAverageWpm, state.isRepeated, { pb: pacePbWpm, daily: paceDailyWpm }).map((notice) => {
           const { subgroup } = notice;
           const className = cn(subgroup ? "mt-button" : "inline-flex items-center justify-center rounded-(--roundness) p-[0.5em] leading-[1.25]", "h-full gap-3", notice.error && "text-error");
           const content = <><Fa icon={notice.icon} fw={false} />{notice.text}</>;

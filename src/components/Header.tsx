@@ -64,7 +64,7 @@ export function Header() {
         <button type="button" data-nav-item="alerts" aria-label="notifications" className={navItem} onClick={() => showModal("Alerts")}>
           <Fa icon="bell" />
         </button>
-        <Link href="/login" data-nav-item="login" aria-label="login" className={navItem}>
+        <Link href="/account" data-nav-item="account" aria-label="account" className={navItem}>
           <Fa icon="user" />
         </Link>
       </nav>

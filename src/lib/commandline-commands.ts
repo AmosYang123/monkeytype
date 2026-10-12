@@ -9,6 +9,7 @@ import { FONTS, FUNBOXES, LANGUAGES, LAYOUTS, THEME_NAMES } from "./config/lists
 import { checkCompatibility } from "./funbox-validation.ts";
 import { validSettingsPatch } from "./test-settings.ts";
 import type { ModalId } from "./modals.ts";
+import { PRACTISE_MISSED_EVENT } from "./test-events.ts";
 
 export type InputSpec = {
   defaultValue: string;
@@ -21,6 +22,8 @@ export type Action =
   | { type: "route"; path: string }
   | { type: "url"; url: string }
   | { type: "clearNotifications" }
+  /** window event for the test engine; the test page opens first */
+  | { type: "testEvent"; name: string }
   | { type: "fullscreen" };
 
 export type Child = {
@@ -410,6 +413,7 @@ function behaviorAndTest(config: Config): Top[] {
     quoteLength(config),
     group(config, "language", { options: LANGUAGES, label: spaced }),
     { id: "changeCustomModeText", display: "Change custom text", icon: "align-left", action: { type: "modal", id: "CustomText" } },
+    { id: "practiseMissedWords", display: "Practice missed words (all time)", alias: "practise mistakes weak", icon: "exclamation-triangle", action: { type: "testEvent", name: PRACTISE_MISSED_EVENT } },
     { id: "viewQuoteSearchPopup", display: "Search for quotes", icon: "search", action: { type: "modal", id: "QuoteSearch", patch: { mode: "quote" } } },
     { id: "shareTestSettings", display: "Share test settings", icon: "share", action: { type: "modal", id: "ShareTestSettings" } },
 
@@ -548,7 +552,7 @@ function themeAndRest(config: Config): Top[] {
     { id: "viewLeaderboards", display: "View Leaderboards", alias: "navigate go to", icon: "crown", action: { type: "route", path: "/leaderboards" } },
     { id: "viewAbout", display: "View About Page", alias: "navigate go to", icon: "info", action: { type: "route", path: "/about" } },
     { id: "viewSettings", display: "View Settings Page", alias: "navigate go to", icon: "cog", action: { type: "route", path: "/settings" } },
-    { id: "viewAccount", display: "View Account Page", alias: "navigate go to stats", icon: "user", action: { type: "route", path: "/login" } },
+    { id: "viewAccount", display: "View Account Page", alias: "navigate go to stats", icon: "user", action: { type: "route", path: "/account" } },
     { id: "toggleFullscreen", display: "Toggle Fullscreen", icon: "expand", action: { type: "fullscreen" } },
     {
       id: "importSettingsJSON",

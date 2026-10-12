@@ -41,10 +41,12 @@ function BigStat({
   label,
   value,
   tip,
+  note,
 }: {
-  label: string;
+  label: ReactNode;
   value: string;
   tip: string;
+  note?: ReactNode;
 }) {
   return (
     <div className="text-[2rem]">
@@ -56,8 +58,16 @@ function BigStat({
       >
         {value}
       </div>
+      {note && <div className="-mt-2 text-base leading-5 text-sub">{note}</div>}
     </div>
   );
+}
+
+/** "+6 vs avg10" against the saved average from before this result; null without history */
+function averageDelta(wpm: number, average10: number): string | null {
+  if (average10 <= 0) return null;
+  const diff = Math.round(wpm) - average10;
+  return `${diff > 0 ? "+" : diff < 0 ? "−" : "±"}${Math.abs(diff)} vs avg10`;
 }
 
 function ResultButton({
@@ -412,7 +422,7 @@ function ResultAds() {
 }
 
 export function ResultScreen() {
-  const { state, restart, repeat } = useTest();
+  const { state, restart, repeat, comparison } = useTest();
   const config = useConfig();
   const [scale, setScale] = useState(config.startGraphsAtZero);
   const [history, setHistory] = useState(() => config.alwaysShowWordsHistory && historyOpensByDefault(state.config));
@@ -440,6 +450,8 @@ export function ResultScreen() {
   const afkPercent = roundTo2((result.afkDuration / seconds) * 100 || 0);
   const struck = (on: boolean) =>
     cn("pointer-events-none", !on && "line-through");
+  const newPb = comparison !== null && wpm > comparison.previousPb;
+  const pbTip = comparison?.previousPb ? `new personal best\nprevious ${roundTo2(comparison.previousPb)} wpm` : "first result for this test type";
   const other = [
     ...(result.failed ? [`failed (${FAIL_LABELS[result.failReason ?? ""] ?? result.failReason})`] : []),
     ...(result.afkDetected ? ["afk detected"] : []),
@@ -452,9 +464,19 @@ export function ResultScreen() {
         <div className="mb-4 grid gap-4 md:grid-cols-[auto_1fr]">
           <div className="grid items-center justify-center gap-2">
             <BigStat
-              label="wpm"
+              label={
+                <>
+                  wpm
+                  {newPb && (
+                    <span className="ml-[0.4em] text-main" aria-label={pbTip} data-balloon-pos="up" role="img">
+                      <Fa icon="crown" />
+                    </span>
+                  )}
+                </>
+              }
               value={String(Math.round(wpm))}
               tip={`${wpm.toFixed(2)} wpm`}
+              note={comparison && averageDelta(wpm, comparison.average10)}
             />
             <BigStat
               label="acc"

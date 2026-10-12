@@ -8,6 +8,7 @@ import { DEFAULT_CONFIG } from "@/lib/config/defaults";
 import { getConfig, setConfigs } from "@/lib/config/store";
 import { SETTINGS_GROUPS } from "@/lib/config/metadata";
 import type { ConfigKey } from "@/lib/config/types";
+import { downloadFile } from "@/lib/download";
 import { notify } from "@/lib/notifications";
 import { validSettingsPatch } from "@/lib/test-settings";
 
@@ -66,17 +67,7 @@ export function SettingsModals() {
           import
         </ModalButton>
         <ModalButton
-          onClick={() => {
-            const blob = new Blob([JSON.stringify(getConfig(), null, 2)], {
-              type: "application/json",
-            });
-            const url = URL.createObjectURL(blob);
-            const anchor = document.createElement("a");
-            anchor.href = url;
-            anchor.download = "monkeytype-settings.json";
-            anchor.click();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-          }}
+          onClick={() => downloadFile("monkeytype-settings.json", JSON.stringify(getConfig(), null, 2), "application/json")}
         >
           export
         </ModalButton>

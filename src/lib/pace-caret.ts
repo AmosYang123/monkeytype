@@ -13,13 +13,15 @@ export type PaceState = {
 
 export const initialPace: PaceState = { wordIndex: 0, letterIndex: 0, correction: 0, wrong: new Set() };
 
-type PaceInput = Pick<Config, "paceCaret" | "paceCaretCustomSpeed" | "repeatedPace"> & { averageWpm: number; lastWpm: number; isRepeated: boolean };
+type PaceInput = Pick<Config, "paceCaret" | "paceCaretCustomSpeed" | "repeatedPace"> & { averageWpm: number; lastWpm: number; isRepeated: boolean; pbWpm?: number; dailyWpm?: number };
 
-/** Target wpm, 0 = no pace caret. pb / tagPb / daily need data the clone does not keep, so they stay off. */
+/** Target wpm, 0 = no pace caret. pb / daily come from local results; tagPb needs tags the clone lacks, so it stays off. */
 export function paceCaretWpm(i: PaceInput): number {
   let wpm = 0;
   if (i.paceCaret === "average") wpm = i.averageWpm;
   else if (i.paceCaret === "custom") wpm = i.paceCaretCustomSpeed;
+  else if (i.paceCaret === "pb") wpm = i.pbWpm ?? 0;
+  else if (i.paceCaret === "daily") wpm = i.dailyWpm ?? 0;
   else if (i.paceCaret === "last" || (i.paceCaret === "off" && i.repeatedPace && i.isRepeated)) wpm = i.lastWpm;
   return Number.isFinite(wpm) && wpm >= 1 ? wpm : 0;
 }

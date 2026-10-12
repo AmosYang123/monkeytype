@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { testNotices } from "./test-notices.ts";
 import { getDefaultConfig } from "./config/defaults.ts";
+import type { Config } from "./config/types.ts";
 
 const prefs = { ...getDefaultConfig(), minWpm: "custom", minWpmCustomSpeed: 50, minBurst: "flex", minBurstCustomSpeed: 50, paceCaret: "average" } as const;
 
@@ -34,4 +35,12 @@ test("repeated notice is red, first, not clickable, and skipped for quotes", () 
   assert.deepEqual([first.icon, first.text, first.subgroup, first.error], ["sync-alt", "repeated", undefined, true]);
   assert.equal(testNotices({ ...prefs, mode: "quote" }, 0, true).some((n) => n.text === "repeated"), false);
   assert.equal(testNotices(prefs).some((n) => n.text === "repeated"), false);
+});
+
+test("pb and daily pace notices and the show pb crown use local stats", () => {
+  const texts = (patch: Partial<Config>, stats = {}) => testNotices({ ...prefs, ...patch }, 0, false, stats).map((n) => n.text);
+  assert.ok(texts({ paceCaret: "pb" }, { pb: 101.6 }).includes("pb pace 102 wpm"));
+  assert.ok(texts({ paceCaret: "daily" }, { daily: 64 }).includes("daily pace 64 wpm"));
+  assert.ok(texts({ showPb: true }, { pb: 90 }).includes("90 wpm"));
+  assert.ok(texts({ showPb: true }).includes("no pb"));
 });

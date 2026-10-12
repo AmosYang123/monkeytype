@@ -10,6 +10,7 @@ import {
   useReducer,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -21,10 +22,13 @@ import { transformWords, parseQuotes } from "@/lib/engine-options";
 import { engineConfig, customWords } from "@/lib/engine-config";
 import { getCustomText, subscribeCustomText } from "@/lib/custom-text";
 import { loadLanguage, quoteLanguage } from "@/lib/languages";
-import { TEST_STARTED_EVENT, TEST_FINISHED_EVENT, PRACTISE_WORDS_EVENT, emitTestEvent, getSelectedQuoteId, type PractiseWordsDetail } from "@/lib/test-events";
+import { TEST_STARTED_EVENT, TEST_FINISHED_EVENT, PRACTISE_WORDS_EVENT, PRACTISE_MISSED_EVENT, emitTestEvent, getSelectedQuoteId, type PractiseWordsDetail } from "@/lib/test-events";
 import { initialState, testReducer, testDuration, isContinuousTest, canFinishManually, type TestState } from "@/lib/test-reducer";
 import { notify } from "@/lib/notifications";
-import { filterOf, getAverage10, saveResult } from "@/lib/results-history";
+import { filterOf, getAverage10, getDailyAverage, getPb, saveResult } from "@/lib/results-history";
+import { addMissedWords, mostMissed } from "@/lib/missed-words";
+import { missedWords } from "@/lib/replay";
+import { autotypeKey, getSesameWpm, msPerKey, subscribeSesame, type AutotypeCursor } from "@/lib/autotype";
 import { DEFAULT_CONFIG, QUOTE_GROUPS, generateWords } from "@/lib/typing";
 import type { Quote, TestConfig } from "@/types/test";
 
@@ -46,6 +50,11 @@ type TestContextValue = {
   onKeyDown: (e: TypingKeyEvent) => void;
   /** rounded mean wpm of the 10 newest saved results for the current config; 0 = none */
   paceAverageWpm: number;
+  /** personal best / today's average wpm for the current config; 0 = none */
+  pacePbWpm: number;
+  paceDailyWpm: number;
+  /** saved-history stats from just before the finished test was saved; null when it was not saved */
+  comparison: ResultComparison | null;
   /** wpm for repeatedPace: last finished test, max across consecutive repeats; 0 = none */
   lastTestWpm: number;
 };
@@ -68,6 +77,16 @@ function playSound(src: string, volume: number) {
 }
 
 
+
+export type ResultComparison = { resetId: number; previousPb: number; average10: number };
+
+type PaceStats = { average: number; pb: number; daily: number };
+function paceStatsFor(config: TestConfig): PaceStats {
+  const filter = filterOf(config);
+  return { average: getAverage10(filter), pb: getPb(filter)?.wpm ?? 0, daily: getDailyAverage(filter) };
+}
+
+const PLAIN_KEY = { ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, preventDefault() {} };
 
 const TestContext = createContext<TestContextValue | null>(null);
 
@@ -128,8 +147,12 @@ export function TestProvider({ children }: { children: ReactNode }) {
   const focusAfterReset = useRef(false);
   const emittedStart = useRef(-1);
   const emittedFinish = useRef(-1);
-  const [paceAverageWpm, setPaceAverageWpm] = useState(0);
+  const [pace, setPace] = useState<PaceStats>({ average: 0, pb: 0, daily: 0 });
   const [lastTestWpm, setLastTestWpm] = useState(0);
+  const [comparison, setComparison] = useState<ResultComparison | null>(null);
+  const sesameWpm = useSyncExternalStore(subscribeSesame, getSesameWpm, () => 0);
+  /** resetId of the test the autotyper is typing; its result is never saved */
+  const [autotypeReset, setAutotypeReset] = useState(-1);
 
   useLayoutEffect(() => {
     if (!focusAfterReset.current) return;
@@ -196,7 +219,7 @@ export function TestProvider({ children }: { children: ReactNode }) {
   }, [state.config, state.words]);
 
   useEffect(() => {
-    queueMicrotask(() => setPaceAverageWpm(getAverage10(filterOf(state.config))));
+    queueMicrotask(() => setPace(paceStatsFor(state.config)));
   }, [state.config]);
 
   useEffect(() => {
@@ -211,16 +234,23 @@ export function TestProvider({ children }: { children: ReactNode }) {
       if (result?.failed) {
         if (result.failReason === "min speed" || result.failReason === "min burst") notify(`Test failed - ${result.failReason}`, { level: "notice", durationMs: 1000 });
       } else if (result) {
+        const autotyped = autotypeReset === state.resetId;
         // upstream: an afk test is invalid and not saved
         if (result.afkDetected) notify("Test invalid - AFK detected", { level: "notice" });
-        else saveResult(state.config, result.wpm, result.acc);
+        else if (!autotyped && getConfig().resultSaving) {
+          const filter = filterOf(state.config);
+          const before: ResultComparison = { resetId: state.resetId, previousPb: getPb(filter)?.wpm ?? 0, average10: getAverage10(filter) };
+          queueMicrotask(() => setComparison(before));
+          saveResult(state.config, result.wpm, result.acc, Date.now(), { raw: result.raw, consistency: result.consistency, seconds: result.seconds });
+          addMissedWords(missedWords(state.events, state.words));
+        }
         queueMicrotask(() => {
-          setPaceAverageWpm(getAverage10(filterOf(state.config)));
-          setLastTestWpm((last) => (!result.isRepeated || result.wpm > last ? result.wpm : last));
+          setPace(paceStatsFor(state.config));
+          if (!autotyped) setLastTestWpm((last) => (!result.isRepeated || result.wpm > last ? result.wpm : last));
         });
       }
     }
-  }, [state.resetId, state.startTime, state.finished, state.result, state.config]);
+  }, [state.resetId, state.startTime, state.finished, state.result, state.config, state.events, state.words, autotypeReset]);
 
   useEffect(() => {
     const practise = (event: Event) => {
@@ -241,6 +271,24 @@ export function TestProvider({ children }: { children: ReactNode }) {
     window.addEventListener(PRACTISE_WORDS_EVENT, practise);
     return () => window.removeEventListener(PRACTISE_WORDS_EVENT, practise);
   }, [state.words, state.inputs, state.config, state.wordDurations]);
+
+  // all-time missed words (command line): a words test of the most-missed words
+  useEffect(() => {
+    const practise = () => {
+      const targets = mostMissed();
+      if (!targets.length) {
+        notify("No missed words saved yet", { level: "notice" });
+        return;
+      }
+      ++resetSeq.current;
+      focusAfterReset.current = true;
+      dispatch({ type: "reset", config: { ...state.config, mode: "words", duration: undefined, words: targets.length }, words: targets });
+      setFocusMode(false);
+      inputRef.current?.focus();
+    };
+    window.addEventListener(PRACTISE_MISSED_EVENT, practise);
+    return () => window.removeEventListener(PRACTISE_MISSED_EVENT, practise);
+  }, [state.config]);
 
   const focusInput = useCallback(() => inputRef.current?.focus(), []);
 
@@ -277,7 +325,7 @@ export function TestProvider({ children }: { children: ReactNode }) {
     };
   }, [focusMode]);
 
-  const onKeyDown = useCallback(
+  const typeKey = useCallback(
     (e: TypingKeyEvent) => {
       const t = performance.now();
       if (e.key === "Enter" && e.shiftKey && canFinishManually(state.config)) {
@@ -331,10 +379,59 @@ export function TestProvider({ children }: { children: ReactNode }) {
     [restart, state.config, state.startTime, state.words, state.inputs, state.finished],
   );
 
+  // open sesame: Enter before the first key starts the autotyper; it types until the test ends or resets
+  const autotyping = autotypeReset === state.resetId && sesameWpm > 0 && onTestPage && !state.finished;
+  const canAutotype = sesameWpm > 0 && onTestPage && state.startTime === null && !state.finished && state.config.mode !== "zen" && state.words.length > 0;
+  const autotypeRefs = useRef({ words: state.words, typeKey });
+  useLayoutEffect(() => {
+    autotypeRefs.current = { words: state.words, typeKey };
+  });
+  useEffect(() => {
+    if (!autotyping) return;
+    const ms = msPerKey(sesameWpm);
+    const t0 = performance.now();
+    let cursor: AutotypeCursor = { word: 0, char: 0 };
+    let sent = 0;
+    let timer = 0;
+    // one key per timeout so each key sees the state the previous one produced; key n is due at t0 + n*ms (no drift)
+    const tick = () => {
+      const step = autotypeKey(autotypeRefs.current.words, cursor);
+      if (!step) return;
+      cursor = step.next;
+      sent++;
+      autotypeRefs.current.typeKey({ ...PLAIN_KEY, key: step.key });
+      timer = window.setTimeout(tick, Math.max(0, t0 + sent * ms - performance.now()));
+    };
+    tick();
+    return () => clearTimeout(timer);
+  }, [autotyping, sesameWpm]);
+
+  const onKeyDown = useCallback(
+    (e: TypingKeyEvent) => {
+      if (e.key === "Enter" && canAutotype && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setAutotypeReset(state.resetId);
+        return;
+      }
+      // physical keys can't disturb an autotyped test; restart keys still work
+      if (autotyping && !["Tab", "Escape", "Enter"].includes(e.key)) {
+        e.preventDefault();
+        return;
+      }
+      typeKey(e);
+    },
+    [autotyping, canAutotype, state.resetId, typeKey],
+  );
+
   // "press any key to focus": first key anywhere focuses the hidden input
   useEffect(() => {
     if (!onTestPage) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && canAutotype && e.target !== inputRef.current && !(e.target instanceof HTMLElement && e.target.closest("dialog, input, textarea, button, a"))) {
+        onKeyDown(e);
+        focusInput();
+        return;
+      }
       if (e.target !== inputRef.current && !(e.target instanceof HTMLElement && e.target.closest("dialog, input, textarea"))) {
         const quick = getConfig().quickRestart;
         if ((quick === "esc" && e.key === "Escape") || (quick === "tab" && e.key === "Tab") || (quick === "enter" && e.key === "Enter")) {
@@ -348,7 +445,7 @@ export function TestProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onTestPage, state.finished, focusInput, onKeyDown]);
+  }, [onTestPage, state.finished, focusInput, onKeyDown, canAutotype]);
 
   const counter = useMemo(() => {
     if (state.startTime === null || state.finished) return null;
@@ -375,7 +472,10 @@ export function TestProvider({ children }: { children: ReactNode }) {
     focusInput,
     setInputFocused,
     onKeyDown,
-    paceAverageWpm,
+    paceAverageWpm: pace.average,
+    pacePbWpm: pace.pb,
+    paceDailyWpm: pace.daily,
+    comparison: comparison?.resetId === state.resetId ? comparison : null,
     lastTestWpm,
   };
   return <TestContext.Provider value={value}>{children}</TestContext.Provider>;

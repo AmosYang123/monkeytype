@@ -1,4 +1,4 @@
-// Local results history (localStorage "results"): feeds the pace-caret average.
+// Local results history (localStorage "results"): feeds pace caret, personal bests and the account page.
 import type { TestConfig } from "../types/test.ts";
 
 const KEY = "results";
@@ -14,7 +14,10 @@ export type ResultFilter = {
   lazyMode: boolean;
 };
 
-export type SavedResult = ResultFilter & { wpm: number; acc: number; timestamp: number };
+/** optional: results saved before these fields existed lack them */
+export type ResultExtra = { raw?: number; consistency?: number; seconds?: number };
+
+export type SavedResult = ResultFilter & ResultExtra & { wpm: number; acc: number; timestamp: number };
 
 export function filterOf(c: TestConfig): ResultFilter {
   return {
@@ -36,25 +39,52 @@ const isSaved = (r: unknown): r is SavedResult => {
     && ["punctuation", "numbers", "lazyMode"].every((k) => typeof o[k] === "boolean");
 };
 
+const EXTRA_KEYS = ["raw", "consistency", "seconds"] as const;
+
+/** drops extra fields that are not finite numbers */
+function withValidExtras(r: SavedResult): SavedResult {
+  const out = { ...r };
+  for (const k of EXTRA_KEYS) if (!(typeof out[k] === "number" && Number.isFinite(out[k]))) delete out[k];
+  return out;
+}
+
 export function getResults(): SavedResult[] {
   try {
     const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? "[]");
-    return Array.isArray(parsed) ? parsed.filter(isSaved) : [];
+    return Array.isArray(parsed) ? parsed.filter(isSaved).map(withValidExtras) : [];
   } catch {
     return [];
   }
 }
 
-export function saveResult(config: TestConfig, wpm: number, acc: number, timestamp = Date.now()): void {
+export function saveResult(config: TestConfig, wpm: number, acc: number, timestamp = Date.now(), extra: ResultExtra = {}): void {
   try {
-    const next = [...getResults(), { ...filterOf(config), wpm, acc, timestamp }].slice(-MAX_RESULTS);
+    const next = [...getResults(), withValidExtras({ ...filterOf(config), ...extra, wpm, acc, timestamp })].slice(-MAX_RESULTS);
     localStorage.setItem(KEY, JSON.stringify(next));
   } catch { /* storage unavailable or full */ }
 }
 
+const matching = (filter: ResultFilter, results = getResults()): SavedResult[] => {
+  const keys = Object.keys(filter) as (keyof ResultFilter)[];
+  return results.filter((r) => keys.every((k) => r[k] === filter[k]));
+};
+
+const roundedMean = (results: SavedResult[]): number =>
+  results.length ? Math.round(results.reduce((sum, r) => sum + r.wpm, 0) / results.length) : 0;
+
 /** Rounded mean wpm of the 10 newest results matching `filter`; 0 when none. */
 export function getAverage10(filter: ResultFilter): number {
-  const keys = Object.keys(filter) as (keyof ResultFilter)[];
-  const recent = getResults().filter((r) => keys.every((k) => r[k] === filter[k])).slice(-10);
-  return recent.length ? Math.round(recent.reduce((sum, r) => sum + r.wpm, 0) / recent.length) : 0;
+  return roundedMean(matching(filter).slice(-10));
+}
+
+/** Best result matching `filter` (highest wpm, earliest on ties); undefined when none. */
+export function getPb(filter: ResultFilter, results = getResults()): SavedResult | undefined {
+  return matching(filter, results).reduce<SavedResult | undefined>((best, r) => (!best || r.wpm > best.wpm ? r : best), undefined);
+}
+
+/** Rounded mean wpm of today's (local day) results matching `filter`; 0 when none. */
+export function getDailyAverage(filter: ResultFilter, now = Date.now()): number {
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  return roundedMean(matching(filter).filter((r) => r.timestamp >= start.getTime() && r.timestamp <= now));
 }

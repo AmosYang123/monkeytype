@@ -7,6 +7,8 @@ export const TEST_FINISHED_EVENT = "mt:test-finished";
 export const TEST_STARTED_EVENT = "mt:test-started";
 /** Fired by the practise-words modal; the engine starts a practice test. */
 export const PRACTISE_WORDS_EVENT = "mt:practise-words";
+/** Fired by the command line; the engine starts a test of the all-time most-missed words. */
+export const PRACTISE_MISSED_EVENT = "mt:practise-missed";
 
 export type TestFinishedDetail = { failed: boolean; failReason?: string };
 export type PractiseWordsDetail = { missed: "off" | "words" | "biwords"; slow: boolean };

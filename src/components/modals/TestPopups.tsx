@@ -15,6 +15,7 @@ import {
   type CustomTextMode,
 } from "@/lib/custom-text";
 import { hideModal, showModal } from "@/lib/modals";
+import { parseSesame, setSesameWpm } from "@/lib/autotype";
 import { notify } from "@/lib/notifications";
 import {
   emitTestEvent,
@@ -265,6 +266,14 @@ function CustomTextModal() {
       <button
         className={BUTTON}
         onClick={() => {
+          const sesame = parseSesame(text);
+          if (sesame) {
+            setSesameWpm(sesame.type === "open" ? sesame.wpm : 0);
+            notify(sesame.type === "open" ? "sesame open" : "sesame closed", { level: "notice", durationMs: 1500 });
+            hideModal("CustomText");
+            focusInput();
+            return;
+          }
           const amount = parseTestAmount(limit);
           const words = text
             .trim()

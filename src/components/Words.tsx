@@ -53,7 +53,7 @@ function caretShape(style: CaretStyle, fill: string, line: string): CSSPropertie
 
 /** Words wrapper: hidden input, focus overlay, caret, and the 3-line words view. */
 export function Words() {
-  const { state, inputFocused, focusMode, inputRef, onKeyDown, setInputFocused, focusInput, paceAverageWpm, lastTestWpm } = useTest();
+  const { state, inputFocused, focusMode, inputRef, onKeyDown, setInputFocused, focusInput, paceAverageWpm, pacePbWpm, paceDailyWpm, lastTestWpm } = useTest();
   const config = useConfig();
   const [firstVisible, setFirstVisible] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -107,7 +107,7 @@ export function Words() {
   }, []);
 
   // pace caret (monkeytype test/pace-caret.ts): one linear glide per char, steps scheduled against the absolute start time
-  const wpm = paceCaretWpm({ ...config, averageWpm: paceAverageWpm, lastWpm: lastTestWpm, isRepeated: state.isRepeated });
+  const wpm = paceCaretWpm({ ...config, averageWpm: paceAverageWpm, pbWpm: pacePbWpm, dailyWpm: paceDailyWpm, lastWpm: lastTestWpm, isRepeated: state.isRepeated });
   const paceOn = wpm > 0 && config.paceCaretStyle !== "off" && !zen;
   const paceShape = caretShape(config.paceCaretStyle, "var(--sub-color)", "var(--sub-color)");
   const targetsRef = useRef(targets);

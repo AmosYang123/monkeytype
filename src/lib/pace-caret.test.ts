@@ -21,6 +21,9 @@ test("paceCaretWpm picks the source per mode", () => {
   assert.equal(paceCaretWpm({ ...base, isRepeated: true }), 45);
   assert.equal(paceCaretWpm({ ...base, isRepeated: true, repeatedPace: false }), 0);
   assert.equal(paceCaretWpm({ ...base, paceCaret: "pb", isRepeated: true }), 0);
+  assert.equal(paceCaretWpm({ ...base, paceCaret: "pb", pbWpm: 123.4 }), 123.4);
+  assert.equal(paceCaretWpm({ ...base, paceCaret: "daily", dailyWpm: 70 }), 70);
+  assert.equal(paceCaretWpm({ ...base, paceCaret: "daily" }), 0);
   assert.equal(paceCaretWpm({ ...base, paceCaret: "average", averageWpm: 0.4 }), 0);
   assert.equal(paceCaretWpm({ ...base, paceCaret: "average", averageWpm: NaN }), 0);
 });

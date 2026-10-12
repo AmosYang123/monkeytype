@@ -1,5 +1,5 @@
 // Test modes notice row (ported from monkeytype TestModesNotice.tsx, GPL-3.0).
-// Config-derived notices plus "repeated"; challenge/tags/zen/pb need state the clone lacks.
+// Config-derived notices plus "repeated" and local pb/daily stats; challenge/tags/zen need state the clone lacks.
 // ponytail: speeds always print as wpm (the clone ignores typingSpeedUnit elsewhere too).
 import type { Config } from "./config/types.ts";
 import type { FaIconName } from "../components/icons.tsx";
@@ -15,7 +15,9 @@ export type TestNotice = {
 const spaced = (text: string) => text.replaceAll("_", " ");
 
 /** `paceAverageWpm` is the saved-results average; missing/NaN shows as "average pace 0 wpm" (upstream behaviour). */
-export function testNotices(config: Config, paceAverageWpm = 0, isRepeated = false): TestNotice[] {
+/** `stats` carries the local personal best and today's average for the current config (0 = none). */
+export function testNotices(config: Config, paceAverageWpm = 0, isRepeated = false, stats: { pb?: number; daily?: number } = {}): TestNotice[] {
+  const pb = Math.round(stats.pb ?? 0) || 0;
   const notices: (TestNotice | false)[] = [
     isRepeated && config.mode !== "quote" && { icon: "sync-alt", text: "repeated", error: true },
     !config.resultSaving && { icon: "save", text: "saving disabled", subgroup: "resultSaving", error: true },
@@ -24,6 +26,9 @@ export function testNotices(config: Config, paceAverageWpm = 0, isRepeated = fal
     config.blindMode && { icon: "eye-slash", text: "blind", subgroup: "blindMode" },
     config.lazyMode && { icon: "couch", text: "lazy", subgroup: "lazyMode" },
     config.paceCaret === "average" && { icon: "tachometer-alt", text: `average pace ${Math.round(paceAverageWpm) || 0} wpm`, subgroup: "paceCaret" },
+    config.paceCaret === "pb" && { icon: "tachometer-alt", text: `pb pace ${pb} wpm`, subgroup: "paceCaret" },
+    config.paceCaret === "daily" && { icon: "tachometer-alt", text: `daily pace ${Math.round(stats.daily ?? 0) || 0} wpm`, subgroup: "paceCaret" },
+    config.showPb && { icon: "crown", text: pb ? `${pb} wpm` : "no pb", subgroup: "showPb" },
     config.paceCaret === "custom" && { icon: "tachometer-alt", text: `custom pace ${config.paceCaretCustomSpeed} wpm`, subgroup: "paceCaret" },
     config.minWpm !== "off" && { icon: "bomb", text: `min ${config.minWpmCustomSpeed} wpm`, subgroup: "minWpm" },
     config.minAcc !== "off" && { icon: "bomb", text: `min ${config.minAccCustom}% acc`, subgroup: "minAcc" },
